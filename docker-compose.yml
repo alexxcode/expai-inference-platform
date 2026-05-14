@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  expai-inference:
+    build: .
+    container_name: expai-inference
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - EXPAI_ENV=production
+      - EXPAI_LOG_LEVEL=INFO
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./videos:/app/videos
+      - ./outputs:/app/outputs
+      - ./modules:/app/modules
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

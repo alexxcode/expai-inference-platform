@@ -1,0 +1,51 @@
+module: kitting
+version: 1.0.0
+description: "Contabilización de kits etiquetados — estación de kitting"
+
+model:
+  path: "models/kitting_v1.pt"
+  confidence_threshold: 0.45
+  iou_threshold: 0.45
+  device: "auto"
+
+classes:
+  0: "operario"
+  1: "bolsa_kit"
+  2: "kit_listo"
+  3: "hoja_etiquetas"
+
+# Clases que representan un kit completado
+kit_done_classes:
+  - "kit_listo"
+
+# Clases que representan un kit en proceso
+kit_wip_classes:
+  - "bolsa_kit"
+
+detection:
+  enable_tracking: true
+  tracker: "bytetrack"
+
+  # Frames sin nuevo kit para disparar alerta de producción parada
+  stall_frame_threshold: 300      # ~12s a 25fps
+
+  # Frames mínimos que un track debe existir para contar como kit real
+  min_track_frames: 3
+
+analysis:
+  # Ventana para calcular kits/minuto (en segundos)
+  rate_window_seconds: 60
+
+alerts:
+  enabled: true
+  output:
+    - type: "log"
+      path: "outputs/logs/kitting_alerts.log"
+    - type: "webhook"
+      url: null
+
+output:
+  annotated_video: true
+  annotated_video_path: "outputs/annotated_videos/"
+  report_path: "outputs/reports/"
+  report_format: "json"

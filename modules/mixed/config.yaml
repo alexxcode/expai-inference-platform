@@ -1,0 +1,70 @@
+module: mixed
+version: 1.0.0
+description: "Monitorización integral estación de matricería — EPP + estados operativos"
+
+model:
+  path: "models/mixed_v1.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"   # auto | cpu | cuda:0 | cuda (Jetson)
+
+classes:
+  0: "mano_con_guante"       # Mano con protección visible
+  1: "mano_sin_guante"       # Mano sin protección, piel expuesta
+  2: "operario_activo"       # Ejecutando plegado activo
+  3: "operario_transicion"   # En estación, no en ciclo activo
+
+# ── Classification helpers ──────────────────────────────────────────
+hand_classes:
+  protected:   ["mano_con_guante"]
+  unprotected: ["mano_sin_guante"]
+
+operator_classes:
+  active:     ["operario_activo"]
+  transition: ["operario_transicion"]
+
+# ── Risk matrix ─────────────────────────────────────────────────────
+# riesgo = combinación estado_operario × estado_epp
+risk_matrix:
+  operario_activo:
+    mano_sin_guante:   CRITICAL   # Trabajando sin protección
+    mano_con_guante:   OK
+    no_hand:           WARNING    # Activo pero no se detectan manos
+  operario_transicion:
+    mano_sin_guante:   WARNING
+    mano_con_guante:   OK
+    no_hand:           OK
+  no_operator:
+    mano_sin_guante:   INFO
+    mano_con_guante:   OK
+    no_hand:           OK
+
+detection:
+  enable_tracking: true
+  tracker: "bytetrack"
+  roi: null
+
+  # Frames consecutivos para cada nivel de alerta
+  critical_frame_threshold: 10    # ~0.4s a 25fps — muy rápido para riesgo laboral
+  warning_frame_threshold:  25    # ~1s
+  transition_idle_threshold: 75   # ~3s en transición → posible inactividad
+
+analysis:
+  # Registrar incidente solo si dura más de X segundos
+  min_incident_duration_seconds: 0.5
+  # Calcular KPIs de ciclo de trabajo
+  cycle_analysis: true
+
+alerts:
+  enabled: true
+  output:
+    - type: "log"
+      path: "outputs/logs/mixed_alerts.log"
+    - type: "webhook"
+      url: null
+
+output:
+  annotated_video: true
+  annotated_video_path: "outputs/annotated_videos/"
+  report_path: "outputs/reports/"
+  report_format: "json"

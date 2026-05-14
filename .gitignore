@@ -1,0 +1,59 @@
+# ─── Environment ─────────────────────────────────────────────────────
+.env
+*.env
+!.env.example
+
+# ─── Python ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ─── Model weights (large binaries — store in object storage) ────────
+models/*.pt
+models/*.onnx
+models/*.engine
+models/*.trt
+models/*.pth
+
+# ─── Runtime assets (user uploads) ───────────────────────────────────
+videos/
+outputs/
+inferences/
+fixedOUTPUT/
+
+# ─── Documentation artifacts ─────────────────────────────────────────
+*.docx
+*.pdf
+EXPAI_Informe_Tecnico.docx
+
+# ─── IDE / OS ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Claude / Anthropic local config ─────────────────────────────────
+.claude/
+.anthropic/
+
+# ─── Logs ────────────────────────────────────────────────────────────
+*.log
+logs/

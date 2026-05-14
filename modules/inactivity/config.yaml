@@ -1,0 +1,60 @@
+module: inactivity
+version: 1.0.0
+
+model:
+  path: "models/inactivity_v1.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"
+
+classes:
+  0: "estado_inactivo"
+  1: "estado_preparacion"
+  2: "estado_activo"
+  3: "estado_descarga"
+
+# Qué estados se consideran "productivos" (no generan alerta)
+productive_states:
+  - "estado_activo"
+  - "estado_preparacion"
+  - "estado_descarga"
+
+# Qué estados se consideran "inactivos" (generan alerta)
+inactive_states:
+  - "estado_inactivo"
+
+detection:
+  # Frames consecutivos en estado_inactivo para disparar alerta WARNING
+  alert_frame_threshold: 30
+  # Frames para alerta CRITICAL (inactividad prolongada)
+  critical_frame_threshold: 150
+  enable_tracking: true
+  tracker: "bytetrack"
+  roi: null
+
+analysis:
+  # Mínima duración de un incidente de inactividad para registrarlo (segundos)
+  min_incident_duration_seconds: 1.0
+  # Detectar transiciones entre estados
+  transition_detection: true
+  # Generar clips de incidentes de inactividad
+  clip_incidents: false
+  clip_padding_seconds: 3
+
+alerts:
+  enabled: true
+  levels:
+    - "INFO"
+    - "WARNING"
+    - "CRITICAL"
+  output:
+    - type: "log"
+      path: "outputs/logs/inactivity_alerts.log"
+    - type: "webhook"
+      url: null
+
+output:
+  annotated_video: true
+  annotated_video_path: "outputs/annotated_videos/"
+  report_path: "outputs/reports/"
+  report_format: "json"

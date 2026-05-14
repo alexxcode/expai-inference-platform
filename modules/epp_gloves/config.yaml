@@ -1,0 +1,44 @@
+module: epp_gloves
+version: 1.0.0
+
+model:
+  path: "models/epp_gloves_v1.pt"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  device: "auto"  # auto | cpu | cuda:0
+
+classes:
+  0: "con_guante"
+  1: "sin_guante"
+
+detection:
+  # Frames consecutivos sin guante para disparar alerta WARNING
+  alert_frame_threshold: 15
+  enable_tracking: true
+  tracker: "bytetrack"  # bytetrack | botsort
+  # ROI: solo analiza detecciones dentro de la zona (null = toda la imagen)
+  roi: null  # [[x1,y1], [x2,y2], [x3,y3], [x4,y4]] o null
+
+analysis:
+  operator_state: true
+  transition_detection: true
+  clip_incidents: true
+  clip_padding_seconds: 3
+
+alerts:
+  enabled: true
+  levels:
+    - "INFO"
+    - "WARNING"
+    - "CRITICAL"
+  output:
+    - type: "log"
+      path: "outputs/logs/epp_alerts.log"
+    - type: "webhook"
+      url: null
+
+output:
+  annotated_video: true
+  annotated_video_path: "outputs/annotated_videos/"
+  report_path: "outputs/reports/"
+  report_format: "json"  # json | csv

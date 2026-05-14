@@ -1,0 +1,40 @@
+module: metrology
+version: 1.0.0
+description: "Metrología — inspección dimensional bracket OK / NOK"
+
+model:
+  path: "models/metrology_v1.pt"
+  confidence_threshold: 0.45
+  iou_threshold: 0.45
+  device: "auto"
+
+classes:
+  0: "bracket_ok"
+  1: "bracket_not_ok"
+
+nok_classes:
+  - "bracket_not_ok"
+
+detection:
+  # Frames consecutivos con NOK para disparar alerta
+  nok_frame_threshold:      5    # ~0.2s  → alerta inmediata
+  critical_frame_threshold: 15   # ~0.6s  → alerta crítica
+  # Si no se detecta nada durante N frames → aviso de "sin pieza"
+  no_piece_threshold: 60         # ~2.4s
+
+analysis:
+  min_incident_duration_seconds: 0.1
+
+alerts:
+  enabled: true
+  output:
+    - type: "log"
+      path: "outputs/logs/metrology_alerts.log"
+    - type: "webhook"
+      url: null
+
+output:
+  annotated_video: true
+  annotated_video_path: "outputs/annotated_videos/"
+  report_path: "outputs/reports/"
+  report_format: "json"

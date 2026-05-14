@@ -1,0 +1,53 @@
+module: procesado
+version: 1.0.0
+description: "Procesado de piezas — pieza_ok / pieza_sin_proceso"
+
+model:
+  path: "models/procesado_v1.pt"
+  confidence_threshold: 0.45
+  iou_threshold: 0.45
+  device: "auto"
+
+classes:
+  0: "pieza_ok"
+  1: "pieza_sin_proceso"
+
+# Clase que indica pieza procesada correctamente (cuenta +1)
+processed_classes:
+  - "pieza_ok"
+
+# Clase que indica pieza pendiente de procesar
+pending_classes:
+  - "pieza_sin_proceso"
+
+detection:
+  enable_tracking: true
+  tracker: "bytetrack"
+
+  # Frames mínimos que un track debe existir para contar como real
+  min_track_frames: 3
+
+  # Frames sin nueva pieza_ok para disparar alerta de stall
+  stall_frame_threshold: 180       # ~7s a 25fps
+
+  # Si pending_count >= backlog_count_threshold por backlog_frame_threshold frames → alerta acumulación
+  backlog_count_threshold: 3
+  backlog_frame_threshold: 60      # ~2.4s a 25fps
+
+analysis:
+  # Ventana para calcular piezas/minuto
+  rate_window_seconds: 60
+
+alerts:
+  enabled: true
+  output:
+    - type: "log"
+      path: "outputs/logs/procesado_alerts.log"
+    - type: "webhook"
+      url: null
+
+output:
+  annotated_video: true
+  annotated_video_path: "outputs/annotated_videos/"
+  report_path: "outputs/reports/"
+  report_format: "json"

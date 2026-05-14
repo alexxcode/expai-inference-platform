@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXPAI — Plataforma de Inferencia</title>
+  <style>
+    :root {
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --surf2:   #21262d;
+      --border:  #30363d;
+      --accent:  #2ea44f;
+      --blue:    #1f6feb;
+      --warn:    #d29922;
+      --danger:  #da3633;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+      --r:       10px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+
+    /* Header */
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .logo{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700}
+    .logo-badge{background:var(--accent);color:#fff;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:1px}
+    .hstatus{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* Nav tabs */
+    nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:4px}
+    .tab{padding:12px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+    .tab:hover{color:var(--text)}
+    .tab.active{color:var(--text);border-color:var(--accent)}
+
+    /* Layout */
+    .page{display:none;max-width:1200px;margin:0 auto;padding:28px 24px;gap:24px;flex-direction:column}
+    .page.active{display:flex}
+    .section-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+
+    /* Panel */
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+    .panel-title{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+
+    /* Module cards */
+    .modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px}
+    .mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;cursor:pointer;transition:border-color .2s,transform .15s;position:relative}
+    .mcard:hover:not(.inactive){border-color:var(--blue);transform:translateY(-2px)}
+    .mcard.sel{border-color:var(--blue);background:#1c2a3a}
+    .mcard.inactive{opacity:.5;cursor:default}
+    .mcard-name{font-size:13px;font-weight:700;margin-bottom:5px}
+    .mcard-desc{font-size:11px;color:var(--muted);line-height:1.4}
+    .mbadge{position:absolute;top:11px;right:11px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase}
+    .badge-on{background:#1a3a27;color:var(--accent)}
+    .badge-off{background:var(--surf2);color:var(--muted)}
+
+    /* Form */
+    .fg2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:600px){.fg2{grid-template-columns:1fr}}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field label{font-size:12px;font-weight:600;color:var(--muted)}
+    .field input,.field select{background:var(--surf2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-size:13px;outline:none;transition:border-color .2s;width:100%}
+    .field input:focus,.field select:focus{border-color:var(--blue)}
+    .field input::placeholder{color:var(--muted)}
+
+    /* Buttons */
+    .btn{padding:9px 18px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;display:inline-flex;align-items:center;gap:6px}
+    .btn:active{transform:scale(.97)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn-green{background:var(--accent);color:#fff}
+    .btn-green:hover:not(:disabled){opacity:.85}
+    .btn-red{background:var(--danger);color:#fff}
+    .btn-blue{background:var(--blue);color:#fff}
+    .btn-blue:hover:not(:disabled){opacity:.85}
+    .btn-ghost{background:var(--surf2);color:var(--text);border:1px solid var(--border)}
+    .btn-ghost:hover{border-color:var(--muted)}
+    .actions{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap}
+
+    /* KPIs */
+    .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+    .kpi{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:16px}
+    .kpi-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:4px}
+    .kpi-value{font-size:24px;font-weight:800}
+    .green{color:var(--accent)} .red{color:var(--danger)} .yellow{color:var(--warn)} .blue{color:#58a6ff}
+
+    /* Progress */
+    .prog-wrap{margin:14px 0 6px}
+    .prog-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+    .prog-bar{height:8px;background:var(--surf2);border-radius:4px;overflow:hidden}
+    .prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--accent));border-radius:4px;transition:width .4s}
+
+    /* Alert */
+    .alert{border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;display:none;align-items:center;gap:10px;margin-bottom:14px}
+    .alert.show{display:flex}
+    .alert.warn{background:#2d2200;border:1px solid var(--warn);color:var(--warn)}
+    .alert.err{background:#2d0d0d;border:1px solid var(--danger);color:var(--danger);animation:shake .3s}
+    .alert.ok{background:#0d2a1a;border:1px solid var(--accent);color:var(--accent)}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+    /* State badge */
+    .sbadge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+    .s-idle{background:var(--surf2);color:var(--muted)}
+    .s-run{background:#0d2038;color:#58a6ff}
+    .s-ok{background:#1a3a27;color:var(--accent)}
+    .s-warn{background:#2d2200;color:var(--warn)}
+    .s-err{background:#2d0d0d;color:var(--danger)}
+    .s-none{background:var(--surf2);color:var(--muted)}
+    /* Risk badge */
+    .risk-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:800;letter-spacing:.5px}
+    .risk-ok{background:#1a3a27;color:var(--accent)}
+    .risk-info{background:#0d1a2e;color:#58a6ff}
+    .risk-warn{background:#2d2200;color:var(--warn)}
+    .risk-crit{background:#2d0d0d;color:var(--danger);animation:pulse 1.2s infinite}
+
+    /* Events log */
+    .elog{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;height:210px;overflow-y:auto;font-family:'Courier New',monospace;font-size:12px;line-height:1.7}
+    .el-info{color:#58a6ff} .el-warn{color:var(--warn)} .el-crit{color:var(--danger);font-weight:700} .el-ok{color:var(--accent)} .el-mute{color:var(--muted)}
+
+    /* Table */
+    .tbl-wrap{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0}
+    td{padding:9px 12px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}
+    .empty{text-align:center;padding:32px;color:var(--muted);font-size:13px}
+
+    /* Two col */
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+    @media(max-width:700px){.two{grid-template-columns:1fr}}
+
+    /* Upload zone */
+    .upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:32px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+    .upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:#0d1a2e}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-icon{font-size:32px;margin-bottom:10px}
+    .upload-label{font-size:14px;font-weight:600;margin-bottom:4px}
+    .upload-hint{font-size:12px;color:var(--muted)}
+
+    /* File list */
+    .file-list{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+    .file-item{display:flex;align-items:center;gap:12px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+    .file-icon{font-size:20px}
+    .file-info{flex:1;min-width:0}
+    .file-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .file-meta{font-size:11px;color:var(--muted);margin-top:2px}
+    .file-actions{display:flex;gap:6px}
+    .btn-icon{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surf2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:color .2s,border-color .2s}
+    .btn-icon:hover{color:var(--text);border-color:var(--muted)}
+    .btn-icon.del:hover{color:var(--danger);border-color:var(--danger)}
+
+    /* Upload progress bar */
+    .upload-prog{height:4px;background:var(--surf2);border-radius:2px;overflow:hidden;margin-top:8px;display:none}
+    .upload-prog.show{display:block}
+    .upload-prog-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .2s}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:var(--surface)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">EXPAI</span>
+    Inference Platform
+  </div>
+  <div class="hstatus">
+    <span class="dot" id="apiDot"></span>
+    <span id="apiStatus">Conectando…</span>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="showPage('inference')">⚙ Inferencia</div>
+  <div class="tab" onclick="showPage('files')">📁 Archivos</div>
+  <div class="tab" onclick="showPage('docs')">📖 API Docs</div>
+</nav>
+
+<!-- ═══════════════════════════ INFERENCIA ═══════════════════════════ -->
+<div class="page active" id="page-inference">
+
+  <!-- Módulos -->
+  <section>
+    <div class="section-title">Módulos disponibles</div>
+    <div class="modules-grid" id="modulesGrid">
+      <div class="mcard inactive"><div class="mcard-name">Cargando…</div></div>
+    </div>
+  </section>
+
+  <!-- Lanzador (video — oculto para metrología) -->
+  <div class="panel" id="videoLauncher">
+    <div class="panel-title">▶ Lanzar inferencia</div>
+    <div class="fg2">
+      <div class="field">
+        <label>Módulo</label>
+        <select id="selModule"><option value="epp_gloves">EPP Guantes</option></select>
+      </div>
+      <div class="field">
+        <label>Video</label>
+        <select id="selVideo"><option value="">— selecciona un video —</option></select>
+      </div>
+      <div class="field">
+        <label>Modelo .pt</label>
+        <select id="selModel"><option value="">— selecciona un modelo —</option></select>
+      </div>
+      <div class="field">
+        <label>Umbral alerta (frames consecutivos)</label>
+        <input id="inpThreshold" type="number" value="15" min="1" max="300" />
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-green" id="btnStart" onclick="startJob()">▶ Iniciar</button>
+      <button class="btn btn-red"   id="btnStop"  onclick="stopJob()" disabled>⏹ Detener</button>
+      <span id="jobIdLabel" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+  </div>
+
+  <!-- ══ METROLOGÍA — Inspección fotográfica ══ -->
+  <div class="panel" id="photoInspector" style="display:none">
+    <div class="panel-title">🔍 Inspección de pieza</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+      <!-- Left: upload + controls -->
+      <div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Modelo de inspección</label>
+          <select id="selModelPhoto"><option value="">— selecciona un modelo —</option></select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div class="field">
+            <label>Umbral detección</label>
+            <input id="inpConfThreshold" type="number" value="35" min="1" max="99" step="1" />
+            <span style="font-size:11px;color:var(--muted);margin-top:3px">% mínimo para detectar pieza</span>
+          </div>
+          <div class="field">
+            <label>Umbral NOK <span style="color:var(--danger)">★</span></label>
+            <input id="inpNokThreshold" type="number" value="65" min="1" max="99" step="1" oninput="document.getElementById('nokThreshLabel').textContent=this.value+'%'" />
+            <span style="font-size:11px;color:var(--muted);margin-top:3px">Por encima de <b id="nokThreshLabel">65%</b> → NOK. Si no, OK.</span>
+          </div>
+        </div>
+
+        <div class="upload-zone" id="photoZone" style="margin-bottom:12px">
+          <input type="file" id="photoInput" accept=".jpg,.jpeg,.png,.webp,.bmp" onchange="inspectPhoto(this)" />
+          <div class="upload-icon">📷</div>
+          <div class="upload-label">Arrastra o haz click para subir foto</div>
+          <div class="upload-hint">JPG · PNG · WEBP · BMP</div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;flex:1" onclick="reloadInspectionModel()">↺ Recargar modelo</button>
+        </div>
+        <div id="inspectStatus" style="font-size:13px;color:var(--muted);min-height:18px;text-align:center"></div>
+
+        <!-- Verdict -->
+        <div id="verdictPanel" style="display:none;margin-top:18px;text-align:center">
+          <div style="margin-bottom:10px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Veredicto</div>
+          <div id="bigVerdict" style="font-size:42px;font-weight:900;letter-spacing:2px;margin-bottom:8px">—</div>
+          <div id="verdictDetail" style="font-size:13px;color:var(--muted)"></div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+            <div class="kpi" style="min-width:110px"><div class="kpi-label">Clase</div><div class="kpi-value" id="photoClass" style="font-size:14px">—</div></div>
+            <div class="kpi" style="min-width:110px"><div class="kpi-label">Confianza</div><div class="kpi-value blue" id="photoConf">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: annotated image -->
+      <div>
+        <div class="section-title">Imagen analizada</div>
+        <div id="photoPreviewWrap" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center">
+          <span style="color:var(--muted);font-size:13px">Sin imagen</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- History table -->
+    <div style="margin-top:20px">
+      <div class="section-title">Historial de inspecciones</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Archivo</th><th>Veredicto</th><th>Clase</th><th>Confianza</th></tr></thead>
+          <tbody id="photoHistoryTbody"><tr><td colspan="5" class="empty">Sin inspecciones</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitor -->
+  <div class="panel" id="monitorPanel">
+    <div class="panel-title">
+      <span id="monitorState" class="sbadge s-idle">⬤ Inactivo</span>
+      Monitor en tiempo real
+    </div>
+
+    <div id="alertBanner" class="alert"></div>
+
+    <div class="kpi-row" style="margin-bottom:14px">
+      <div class="kpi"><div class="kpi-label" id="kpiMainLabel">Cumplimiento EPP</div><div class="kpi-value green" id="kpiMain">—</div></div>
+      <div class="kpi"><div class="kpi-label" id="kpiSecLabel">Incidentes</div><div class="kpi-value red" id="kpiSec">—</div></div>
+      <div class="kpi"><div class="kpi-label">Frame</div><div class="kpi-value blue"  id="kpiFrame">—</div></div>
+      <div class="kpi"><div class="kpi-label">FPS</div><div class="kpi-value yellow" id="kpiFps">—</div></div>
+    </div>
+    <!-- Inactivity state breakdown (hidden for EPP / mixed) -->
+    <div id="stateBreakdown" style="display:none;margin-bottom:14px">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-label">🟢 Activo</div><div class="kpi-value green" id="kpiActivo">—</div></div>
+        <div class="kpi"><div class="kpi-label">🟡 Preparación</div><div class="kpi-value yellow" id="kpiPrep">—</div></div>
+        <div class="kpi"><div class="kpi-label">🟣 Descarga</div><div class="kpi-value blue" id="kpiDescarga">—</div></div>
+        <div class="kpi"><div class="kpi-label">🔴 Inactivo</div><div class="kpi-value red" id="kpiInactivo">—</div></div>
+      </div>
+    </div>
+    <!-- Kitting counter row (hidden for other modules) -->
+    <div id="kittingRow" style="display:none;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="text-align:center;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:16px 24px">
+          <div class="kpi-label" style="margin-bottom:6px">Kits Completados</div>
+          <div id="kpiTotalKits" style="font-size:56px;font-weight:900;color:var(--accent);line-height:1">0</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div class="kpi" style="flex:1;min-width:110px"><div class="kpi-label">En proceso</div><div class="kpi-value yellow" id="kpiKitsWip">—</div></div>
+            <div class="kpi" style="flex:1;min-width:110px"><div class="kpi-label">Kits/min</div><div class="kpi-value blue" id="kpiKitsPerMin">—</div></div>
+            <div class="kpi" style="flex:1;min-width:110px"><div class="kpi-label">Operario</div><div class="kpi-value" id="kpiOperatorKitting" style="font-size:20px">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Procesado counter row (hidden for other modules) -->
+    <div id="procesadoRow" style="display:none;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="text-align:center;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:16px 24px">
+          <div class="kpi-label" style="margin-bottom:6px">Piezas Procesadas</div>
+          <div id="kpiTotalProcessed" style="font-size:56px;font-weight:900;color:var(--accent);line-height:1">0</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div class="kpi" style="flex:1;min-width:110px"><div class="kpi-label">Pendientes</div><div class="kpi-value yellow" id="kpiPendingCount">—</div></div>
+            <div class="kpi" style="flex:1;min-width:110px"><div class="kpi-label">Piezas/min</div><div class="kpi-value blue" id="kpiPiecesPerMin">—</div></div>
+            <div class="kpi" style="flex:1;min-width:120px"><div class="kpi-label">Acumulación</div><div class="kpi-value" id="kpiBacklogStatus" style="font-size:18px">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Metrology verdict row (hidden for other modules) -->
+    <div id="metrologyRow" style="display:none;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div>
+          <div class="kpi-label" style="margin-bottom:6px">Veredicto</div>
+          <span class="risk-badge risk-ok" id="verdictBadge">SIN PIEZA</span>
+        </div>
+        <div class="kpi" style="flex:1;min-width:140px">
+          <div class="kpi-label">Clase detectada</div>
+          <div class="kpi-value" id="kpiDetectedClass" style="font-size:15px;font-weight:700">—</div>
+        </div>
+        <div class="kpi" style="flex:1;min-width:120px">
+          <div class="kpi-label">Confianza</div>
+          <div class="kpi-value blue" id="kpiConfidence">—</div>
+        </div>
+        <div class="kpi" style="flex:1;min-width:120px">
+          <div class="kpi-label">Frames NOK</div>
+          <div class="kpi-value red" id="kpiNokStreak">—</div>
+        </div>
+      </div>
+    </div>
+    <!-- Mixed module: risk level + hand state row (hidden for EPP / inactivity) -->
+    <div id="mixedRiskRow" style="display:none;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div>
+          <div class="kpi-label" style="margin-bottom:6px">Nivel de Riesgo</div>
+          <span class="risk-badge risk-ok" id="riskBadge">OK</span>
+        </div>
+        <div class="kpi" style="flex:1;min-width:140px">
+          <div class="kpi-label">Estado Manos</div>
+          <div class="kpi-value" id="kpiHandState" style="font-size:15px;font-weight:700">—</div>
+        </div>
+        <div class="kpi" style="flex:1;min-width:140px">
+          <div class="kpi-label">Estado Operario</div>
+          <div class="kpi-value" id="kpiOperatorState" style="font-size:15px;font-weight:700">—</div>
+        </div>
+        <div class="kpi" style="flex:1;min-width:120px">
+          <div class="kpi-label">Frames en Riesgo</div>
+          <div class="kpi-value red" id="kpiRiskStreak">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-labels"><span>Progreso</span><span id="progPct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="section-title">Log de eventos</div>
+        <div class="elog" id="eventsLog"><span class="el-mute">Esperando inicio…</span></div>
+      </div>
+      <div>
+        <div class="section-title">Incidentes</div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>#</th><th>Inicio (s)</th><th>Duración (s)</th><th>Track</th></tr></thead>
+          <tbody id="incidentsTbody"><tr><td colspan="4" class="empty">Sin incidentes</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reporte -->
+  <div class="panel" id="reportSection" style="display:none">
+    <div class="panel-title">📊 Reporte final</div>
+    <div class="kpi-row" id="reportKpis"></div>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn btn-ghost" id="btnDlVideo" onclick="downloadVideo()" style="display:none">⬇ Video anotado</button>
+      <button class="btn btn-ghost" onclick="resetUI()">↺ Nueva inferencia</button>
+    </div>
+  </div>
+
+</div><!-- /page-inference -->
+
+<!-- ═══════════════════════════ ARCHIVOS ═══════════════════════════ -->
+<div class="page" id="page-files">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    @media(max-width:700px){style="grid-template-columns:1fr"}
+
+    <!-- Modelos -->
+    <div class="panel">
+      <div class="panel-title">🧠 Modelos (.pt)</div>
+      <div class="upload-zone" id="zoneModel">
+        <input type="file" accept=".pt,.onnx" onchange="uploadFile(this,'model')" />
+        <div class="upload-icon">⬆</div>
+        <div class="upload-label">Arrastra o haz click para subir</div>
+        <div class="upload-hint">Archivos .pt / .onnx · máx. 2 GB</div>
+      </div>
+      <div class="upload-prog" id="progModel"><div class="upload-prog-fill" id="progModelFill" style="width:0%"></div></div>
+      <div id="statusModel" style="font-size:12px;color:var(--muted);margin-top:6px;min-height:16px"></div>
+      <div class="file-list" id="modelList"><div class="empty" style="padding:20px">Sin modelos cargados</div></div>
+    </div>
+
+    <!-- Videos -->
+    <div class="panel">
+      <div class="panel-title">🎬 Videos</div>
+      <div class="upload-zone" id="zoneVideo">
+        <input type="file" accept=".mp4,.avi,.mov,.mkv,.webm" onchange="uploadFile(this,'video')" />
+        <div class="upload-icon">⬆</div>
+        <div class="upload-label">Arrastra o haz click para subir</div>
+        <div class="upload-hint">Archivos .mp4 .avi .mov .mkv · máx. 10 GB</div>
+      </div>
+      <div class="upload-prog" id="progVideo"><div class="upload-prog-fill" id="progVideoFill" style="width:0%"></div></div>
+      <div id="statusVideo" style="font-size:12px;color:var(--muted);margin-top:6px;min-height:16px"></div>
+      <div class="file-list" id="videoList"><div class="empty" style="padding:20px">Sin videos cargados</div></div>
+    </div>
+
+  </div>
+</div><!-- /page-files -->
+
+<!-- ═══════════════════════════ DOCS ═══════════════════════════ -->
+<div class="page" id="page-docs">
+  <div class="panel" style="padding:0;overflow:hidden;height:calc(100vh - 120px)">
+    <iframe src="/docs" style="width:100%;height:100%;border:none;background:#fff"></iframe>
+  </div>
+</div>
+
+<script>
+const API = '';
+let currentJobId = null, sseSource = null;
+let totalFrames = 0, lastFpsTime = Date.now(), lastFrame = 0;
+
+
+// ── Page nav ─────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'files') { loadFileList('model'); loadFileList('video'); }
+}
+
+// ── Health ────────────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const d = await fetch(`${API}/health`).then(r=>r.json());
+    document.getElementById('apiDot').style.background = 'var(--accent)';
+    document.getElementById('apiStatus').textContent = `API OK · ${d.env}`;
+  } catch {
+    document.getElementById('apiDot').style.background = 'var(--danger)';
+    document.getElementById('apiStatus').textContent = 'Sin conexión';
+  }
+}
+
+// ── Modules ───────────────────────────────────────────────────────────
+async function loadModules() {
+  const modules = await fetch(`${API}/modules`).then(r=>r.json()).catch(()=>[]);
+  const grid = document.getElementById('modulesGrid');
+  const sel  = document.getElementById('selModule');
+  grid.innerHTML = ''; sel.innerHTML = '';
+  const names = {epp_gloves:'EPP Guantes',inactivity:'Inactividad',mixed:'Mixto',labeling:'Etiquetado',metrology:'Metrología',kitting:'Kitting'};
+  modules.forEach(m => {
+    const on = m.status === 'active';
+    const card = document.createElement('div');
+    card.className = `mcard${on?'':' inactive'}`;
+    card.id = `card-${m.name}`;
+    card.innerHTML = `<div class="mbadge ${on?'badge-on':'badge-off'}">${on?'activo':'pronto'}</div>
+      <div class="mcard-name">${names[m.name]||m.name}</div>
+      <div class="mcard-desc">${m.description}</div>`;
+    if (on) card.onclick = () => selectModule(m.name);
+    grid.appendChild(card);
+    if (on) { const o=document.createElement('option'); o.value=m.name; o.textContent=names[m.name]||m.name; sel.appendChild(o); }
+  });
+  selectModule('epp_gloves');
+}
+function selectModule(name) {
+  document.querySelectorAll('.mcard').forEach(c=>c.classList.remove('sel'));
+  document.getElementById(`card-${name}`)?.classList.add('sel');
+  document.getElementById('selModule').value = name;
+  // Toggle video launcher vs photo inspector
+  const isMetrology = name === 'metrology';
+  document.getElementById('videoLauncher').style.display  = isMetrology ? 'none'  : 'block';
+  document.getElementById('photoInspector').style.display = isMetrology ? 'block' : 'none';
+  document.getElementById('monitorPanel').style.display   = isMetrology ? 'none'  : 'block';
+  if (isMetrology) syncModelSelectPhoto();
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  currentJobId = null;
+  document.getElementById('jobIdLabel').textContent = '';
+  activeModule = name;
+  updateKpiLabels(name);
+  resetMonitor();
+  resetBtns();
+  setMonState('idle');
+  document.getElementById('reportSection').style.display = 'none';
+  const dlBtn = document.getElementById('btnDlVideo'); if (dlBtn) dlBtn.style.display = 'none';
+}
+
+
+// ── File lists (selects in form) ──────────────────────────────────────
+async function loadSelects() {
+  const [models, videos] = await Promise.all([
+    fetch(`${API}/upload/models`).then(r=>r.json()).catch(()=>[]),
+    fetch(`${API}/upload/videos`).then(r=>r.json()).catch(()=>[]),
+  ]);
+  const selM = document.getElementById('selModel');
+  const selV = document.getElementById('selVideo');
+  selM.innerHTML = '<option value="">— selecciona un modelo —</option>';
+  selV.innerHTML = '<option value="">— selecciona un video —</option>';
+  models.forEach(f => { const o=document.createElement('option'); o.value=f.path; o.textContent=`${f.filename} (${f.size_mb} MB)`; selM.appendChild(o); });
+  videos.forEach(f => { const o=document.createElement('option'); o.value=f.path; o.textContent=`${f.filename} (${f.size_mb} MB)`; selV.appendChild(o); });
+  // Also populate photo model selector
+  _cachedModels = models;
+  syncModelSelectPhoto();
+}
+let _cachedModels = [];
+function syncModelSelectPhoto() {
+  const sel = document.getElementById('selModelPhoto');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— selecciona un modelo —</option>';
+  let best = null;
+  _cachedModels.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f.path;
+    o.textContent = `${f.filename} (${f.size_mb} MB)`;
+    sel.appendChild(o);
+    // Prefer cls model, then any metrology model
+    if (f.filename.toLowerCase().includes('cls')) best = o;
+    else if (!best && (f.filename.toLowerCase().includes('metrology') || f.filename.toLowerCase().includes('bracket'))) best = o;
+  });
+  if (best) best.selected = true;
+}
+
+// ── Upload ────────────────────────────────────────────────────────────
+async function uploadFile(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+  const progBar  = document.getElementById(`prog${cap(type)}Fill`);
+  const progWrap = document.getElementById(`prog${cap(type)}`);
+  const status   = document.getElementById(`status${cap(type)}`);
+  progWrap.classList.add('show'); progBar.style.width='0%';
+  status.textContent = `Subiendo ${file.name}…`;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', `${API}/upload/${type}`);
+
+  xhr.upload.onprogress = e => {
+    if (e.lengthComputable) {
+      const pct = (e.loaded/e.total*100).toFixed(0);
+      progBar.style.width = pct + '%';
+    }
+  };
+
+  xhr.onload = () => {
+    progWrap.classList.remove('show');
+    if (xhr.status === 200) {
+      const res = JSON.parse(xhr.responseText);
+      status.style.color = 'var(--accent)';
+      status.textContent = `✓ ${res.filename} (${res.size_mb} MB) subido correctamente`;
+      loadFileList(type);
+      loadSelects();
+      setTimeout(()=>{ status.textContent=''; status.style.color=''; }, 4000);
+    } else {
+      status.style.color = 'var(--danger)';
+      status.textContent = `Error: ${JSON.parse(xhr.responseText)?.detail || xhr.statusText}`;
+    }
+    input.value = '';
+  };
+  xhr.onerror = () => {
+    progWrap.classList.remove('show');
+    status.style.color = 'var(--danger)';
+    status.textContent = 'Error de red al subir el archivo.';
+  };
+  xhr.send(formData);
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ── File list (files page) ────────────────────────────────────────────
+async function loadFileList(type) {
+  const files = await fetch(`${API}/upload/${type}s`).then(r=>r.json()).catch(()=>[]);
+  const container = document.getElementById(`${type}List`);
+  if (files.length === 0) { container.innerHTML = `<div class="empty" style="padding:20px">Sin ${type === 'model' ? 'modelos' : 'videos'} cargados</div>`; return; }
+  const icons = { model:'🧠', video:'🎬' };
+  container.innerHTML = files.map(f => `
+    <div class="file-item">
+      <span class="file-icon">${icons[type]}</span>
+      <div class="file-info">
+        <div class="file-name" title="${f.filename}">${f.filename}</div>
+        <div class="file-meta">${f.size_mb} MB · ${f.path}</div>
+      </div>
+      <div class="file-actions">
+        <button class="btn-icon del" title="Eliminar" onclick="deleteFile('${type}','${f.filename}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteFile(type, filename) {
+  if (!confirm(`¿Eliminar ${filename}?`)) return;
+  await fetch(`${API}/upload/${type}/${encodeURIComponent(filename)}`, { method:'DELETE' });
+  loadFileList(type);
+  loadSelects();
+}
+
+// ── Drag & drop styling ───────────────────────────────────────────────
+['zoneModel','zoneVideo'].forEach(id => {
+  const zone = document.getElementById(id);
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); });
+});
+
+// ── Start job ─────────────────────────────────────────────────────────
+let activeModule = 'epp_gloves';
+
+async function startJob() {
+  const module    = document.getElementById('selModule').value;
+  const threshold = parseInt(document.getElementById('inpThreshold').value)||15;
+
+  activeModule = module;
+  updateKpiLabels(module);
+  resetMonitor();
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStop').disabled  = false;
+
+  const video = document.getElementById('selVideo').value;
+  const model = document.getElementById('selModel').value;
+  if (!video) { alert('Selecciona un video.'); resetBtns(); return; }
+  if (!model) { alert('Selecciona un modelo.'); resetBtns(); return; }
+
+  const overrides = module === 'inactivity'
+    ? { detection: { alert_frame_threshold: threshold, critical_frame_threshold: threshold * 5 } }
+    : module === 'mixed'
+      ? { detection: { critical_frame_threshold: threshold, warning_frame_threshold: threshold * 3 } }
+      : module === 'metrology'
+      ? { detection: { nok_frame_threshold: threshold, critical_frame_threshold: threshold * 3 } }
+      : { detection: { alert_frame_threshold: threshold } };
+
+  try {
+    const r = await fetch(`${API}/inference/start`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ module, video_path:video, model_path:model, config_overrides: overrides })
+    });
+    if (!r.ok) { const e=await r.json(); throw new Error(e.detail||'Error'); }
+    const job = await r.json();
+    currentJobId = job.job_id;
+    document.getElementById('jobIdLabel').textContent = `Job: ${currentJobId}`;
+    log(`Job iniciado: ${currentJobId} [${module}]`, 'el-ok');
+    setMonState('run');
+    startSSE(currentJobId);
+  } catch(e) {
+    log(`Error: ${e.message}`, 'el-crit');
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('btnStop').disabled  = true;
+  }
+}
+
+function updateKpiLabels(module) {
+  const isMixed      = module === 'mixed';
+  const isInactivity = module === 'inactivity';
+  const isMetrology  = module === 'metrology';
+  const isKitting2  = module === 'kitting';
+  const isProcesado2 = module === 'procesado';
+  document.getElementById('kpiMainLabel').textContent = isInactivity ? 'Tasa de Actividad' : isMetrology ? 'Piezas OK %' : isKitting2 ? 'Kits completados' : isProcesado2 ? 'Piezas procesadas' : 'Cumplimiento EPP';
+  document.getElementById('kpiSecLabel').textContent  = isInactivity ? 'Incidentes Inactividad' : isMixed ? 'Incidentes Críticos' : isMetrology ? 'Piezas NOK %' : isKitting2 ? 'Kits/min' : isProcesado2 ? 'Piezas/min' : 'Incidentes';
+  document.getElementById('kpiMain').className        = (isKitting2 || isProcesado2) ? 'kpi-value green' : isInactivity ? 'kpi-value blue' : 'kpi-value green';
+  document.getElementById('kpiSec').className         = (isKitting2 || isProcesado2) ? 'kpi-value blue'  : isMetrology  ? 'kpi-value red'  : 'kpi-value red';
+  const isKitting   = module === 'kitting';
+  const isProcesado = module === 'procesado';
+  document.getElementById('stateBreakdown').style.display = isInactivity ? 'block' : 'none';
+  document.getElementById('mixedRiskRow').style.display   = isMixed      ? 'block' : 'none';
+  document.getElementById('metrologyRow').style.display   = isMetrology  ? 'block' : 'none';
+  document.getElementById('kittingRow').style.display     = isKitting    ? 'block' : 'none';
+  document.getElementById('procesadoRow').style.display   = isProcesado  ? 'block' : 'none';
+}
+
+// ── Stop ──────────────────────────────────────────────────────────────
+async function stopJob() {
+  if (!currentJobId) return;
+  await fetch(`${API}/inference/${currentJobId}/stop`, { method:'POST' });
+  log('Stop solicitado…', 'el-warn');
+}
+
+// ── SSE ───────────────────────────────────────────────────────────────
+function startSSE(jobId) {
+  if (sseSource) sseSource.close();
+  sseSource = new EventSource(`${API}/inference/${jobId}/stream`);
+  sseSource.onmessage = e => {
+    const d = JSON.parse(e.data);
+    if (d.status === 'running')    updateMonitor(d);
+    else if (d.status === 'completed') { onDone(d); sseSource.close(); }
+    else if (d.status === 'failed')    { log(`Error: ${d.error}`,'el-crit'); setMonState('idle'); sseSource.close(); resetBtns(); }
+  };
+}
+
+// ── Monitor ───────────────────────────────────────────────────────────
+function updateMonitor(d) {
+  const state = d.operator_state || 'no_detection';
+
+  // State badge
+  const stateMap = {
+    COMPLIANT:'ok', INCUMPLIMIENTO:'err', NO_DETECTION:'none',
+    estado_activo:'ok', estado_preparacion:'ok', estado_descarga:'ok',
+    estado_inactivo:'err', no_detection:'none',
+    operario_activo:'run', operario_transicion:'warn', no_operator:'none',
+  };
+  setMonState(stateMap[state] || 'none', state);
+
+  // Main KPI — activity rate / compliance / epp_compliance
+  let mainVal = '—';
+  if (activeModule === 'inactivity')
+    mainVal = d.activity_rate  != null ? d.activity_rate.toFixed(1)+'%'  : '—';
+  else if (activeModule === 'mixed')
+    mainVal = d.epp_compliance != null ? d.epp_compliance.toFixed(1)+'%' : '—';
+  else
+    mainVal = d.compliance_pct != null ? d.compliance_pct.toFixed(1)+'%' : '—';
+  document.getElementById('kpiMain').textContent = mainVal;
+
+  document.getElementById('kpiFrame').textContent = d.frame ?? '—';
+
+  const now = Date.now(), elapsed = (now - lastFpsTime)/1000;
+  if (elapsed > 1.5) {
+    document.getElementById('kpiFps').textContent = ((d.frame - lastFrame)/elapsed).toFixed(1);
+    lastFpsTime = now; lastFrame = d.frame;
+  }
+  updateProg(d.frame);
+
+  // Mixed-specific UI
+  if (activeModule === 'mixed') {
+    updateRiskBadge(d.risk_level || 'OK');
+    document.getElementById('kpiHandState').textContent     = handLabel(d.hand_state);
+    document.getElementById('kpiOperatorState').textContent = operatorLabel(d.operator_state);
+    document.getElementById('kpiRiskStreak').textContent    = d.risk_streak ?? '—';
+  }
+
+  // Kitting-specific UI
+  if (activeModule === 'kitting') {
+    const kits = d.total_kits ?? 0;
+    document.getElementById('kpiTotalKits').textContent  = kits;
+    document.getElementById('kpiMain').textContent       = kits;
+    document.getElementById('kpiSec').textContent        = d.kits_per_min != null ? d.kits_per_min.toFixed(2) : '—';
+    document.getElementById('kpiKitsWip').textContent    = d.kits_in_progress ?? '—';
+    document.getElementById('kpiKitsPerMin').textContent = d.kits_per_min != null ? d.kits_per_min.toFixed(2) : '—';
+    document.getElementById('kpiOperatorKitting').textContent = d.operator_present ? '🟢 Presente' : '🔴 Ausente';
+    document.getElementById('kpiOperatorKitting').style.color = d.operator_present ? 'var(--accent)' : 'var(--danger)';
+    setMonState(d.stall_active ? 'warn' : kits > 0 ? 'ok' : 'run',
+                d.stall_active ? 'stall' : d.operator_present ? 'operario_activo' : 'no_operator');
+  }
+
+  // Procesado-specific UI
+  if (activeModule === 'procesado') {
+    const proc = d.total_processed ?? 0;
+    document.getElementById('kpiTotalProcessed').textContent = proc;
+    document.getElementById('kpiMain').textContent           = proc;
+    document.getElementById('kpiSec').textContent            = d.pieces_per_min != null ? d.pieces_per_min.toFixed(2) : '—';
+    document.getElementById('kpiPendingCount').textContent   = d.pending_count ?? '—';
+    document.getElementById('kpiPiecesPerMin').textContent   = d.pieces_per_min != null ? d.pieces_per_min.toFixed(2) : '—';
+    const backlogEl = document.getElementById('kpiBacklogStatus');
+    backlogEl.textContent = d.backlog_active ? '🔴 Acumulación' : '🟢 Normal';
+    backlogEl.style.color = d.backlog_active ? 'var(--danger)' : 'var(--accent)';
+    const st = d.backlog_active ? 'warn' : d.stall_active ? 'warn' : proc > 0 ? 'ok' : 'run';
+    const lbl = d.backlog_active ? 'stall' : d.stall_active ? 'stall' : proc > 0 ? 'operario_activo' : 'no_operator';
+    setMonState(st, lbl);
+  }
+
+  // Metrology-specific UI
+  if (activeModule === 'metrology') {
+    updateVerdictBadge(d.verdict || 'NO_PIECE');
+    document.getElementById('kpiDetectedClass').textContent = classLabel(d.detected_class);
+    document.getElementById('kpiConfidence').textContent    = d.confidence != null ? (d.confidence * 100).toFixed(1) + '%' : '—';
+    document.getElementById('kpiNokStreak').textContent     = d.nok_streak ?? '—';
+    document.getElementById('kpiMain').textContent          = d.ok_rate  != null ? d.ok_rate.toFixed(1)  + '%' : '—';
+    document.getElementById('kpiSec').textContent           = d.nok_rate != null ? d.nok_rate.toFixed(1) + '%' : '—';
+  }
+
+  // Alert banner
+  if (d.alert_active || (activeModule === 'mixed' && d.risk_level && d.risk_level !== 'OK')) {
+    const level = d.alert_level || d.risk_level || 'WARNING';
+    const type  = level === 'CRITICAL' ? 'err' : 'warn';
+    let msg;
+    if (activeModule === 'inactivity')
+      msg = `⚠ ${level}: Operario inactivo — ${d.inactive_streak} frames consecutivos`;
+    else if (activeModule === 'mixed')
+      msg = level === 'CRITICAL'
+        ? `🚨 RIESGO CRÍTICO: Operario activo sin protección (${d.risk_streak} frames)`
+        : `⚠ ADVERTENCIA: ${handLabel(d.hand_state)} — ${d.operator_state}`;
+    else if (activeModule === 'kitting')
+      msg = `⚠ Producción pausada — último kit hace ${d.frames_sin_kit||'?'} frames`;
+    else if (activeModule === 'procesado')
+      msg = d.backlog_active
+        ? `⚠ ACUMULACIÓN — ${d.pending_count||0} piezas sin procesar en estación`
+        : `⚠ PRODUCCIÓN PARADA — ${d.total_processed||0} piezas procesadas`;
+    else if (activeModule === 'metrology')
+      msg = level === 'CRITICAL'
+        ? `🚨 PIEZA NO CONFORME — ${classLabel(d.detected_class)} (${d.nok_streak} frames)`
+        : `⚠ POSIBLE NOK — ${classLabel(d.detected_class)} conf. ${(d.confidence*100).toFixed(0)}%`;
+    else
+      msg = `⚠ ALERTA: Operario sin guantes — frame ${d.frame}`;
+    showAlert(msg, type);
+  } else {
+    hideAlert();
+  }
+
+  // Events log
+  (d.events||[]).forEach(ev => {
+    const isNeg = ev.event_type === 'GLOVE_REMOVED' || ev.is_inactivity_start || ev.event_type === 'EPP_VIOLATION'
+               || ev.event_type === 'PRODUCCION_PAUSADA' || ev.event_type === 'ACUMULACION_DETECTADA' || ev.event_type === 'STALL_DETECTADO';
+    const isPos = ev.event_type === 'GLOVE_PUT_ON'  || ev.is_inactivity_end   || ev.event_type === 'EPP_RESTORED'
+               || ev.event_type === 'KIT_COMPLETADO' || ev.event_type === 'ENSAMBLAJE_COMPLETADO' || ev.event_type === 'PIEZA_PROCESADA'
+               || ev.event_type === 'PRODUCCION_REANUDADA';
+    const cls   = isNeg ? 'el-warn' : isPos ? 'el-ok' : 'el-info';
+    const label = ev.event_type === 'STATE_TRANSITION'
+      ? `${ev.from_state} → ${ev.to_state}`
+      : ev.event_type === 'RISK_CHANGE'
+        ? `RISK: ${ev.from_risk || '?'} → ${ev.to_risk || '?'}`
+        : ev.event_type === 'ENSAMBLAJE_COMPLETADO'
+          ? `✔ Ensamblaje #${ev.total_assemblies} completado (track ${ev.track_id})`
+          : ev.event_type === 'KIT_COMPLETADO'
+            ? `✔ Kit #${ev.total_kits} completado (track ${ev.track_id})`
+            : ev.event_type === 'PIEZA_PROCESADA'
+              ? `✔ Pieza #${ev.total_processed} procesada (track ${ev.track_id})`
+              : ev.event_type === 'ACUMULACION_DETECTADA'
+                ? `⚠ Acumulación — ${ev.pending_count||'?'} piezas sin procesar`
+                : ev.event_type;
+    log(`T=${(ev.timestamp||0).toFixed(2)}s | ${label}`, cls);
+  });
+}
+
+function updateVerdictBadge(verdict) {
+  const el = document.getElementById('verdictBadge');
+  const cfg = {
+    OK:       { cls:'risk-ok',   lbl:'✔ OK — CONFORME' },
+    NOK:      { cls:'risk-crit', lbl:'✘ NOK — NO CONFORME' },
+    NO_PIECE: { cls:'risk-info', lbl:'◌ SIN PIEZA' },
+  };
+  const c = cfg[verdict] || cfg.NO_PIECE;
+  el.className  = `risk-badge ${c.cls}`;
+  el.textContent = c.lbl;
+}
+function classLabel(cls) {
+  return { bracket_ok:'✔ bracket_ok', bracket_not_ok:'✘ bracket_not_ok' }[cls] || (cls || '—');
+}
+
+function updateRiskBadge(risk) {
+  const el = document.getElementById('riskBadge');
+  const cls = { OK:'risk-ok', INFO:'risk-info', WARNING:'risk-warn', CRITICAL:'risk-crit' };
+  const lbl = { OK:'✔ OK', INFO:'ℹ INFO', WARNING:'⚠ WARNING', CRITICAL:'🚨 CRÍTICO' };
+  el.className = `risk-badge ${cls[risk] || 'risk-ok'}`;
+  el.textContent = lbl[risk] || risk;
+}
+function handLabel(h) {
+  return { mano_con_guante:'🟢 Con guante', mano_sin_guante:'🔴 Sin guante', no_hand:'⚪ No detectada' }[h] || (h || '—');
+}
+function operatorLabel(op) {
+  return { operario_activo:'🔵 Activo', operario_transicion:'🟡 Transición', no_operator:'⚪ No detectado' }[op] || (op || '—');
+}
+
+async function updateProg(frame) {
+  if (!totalFrames && currentJobId) {
+    try { const d=await fetch(`${API}/inference/${currentJobId}/status`).then(r=>r.json()); totalFrames=d.total_frames||0; } catch {}
+  }
+  if (totalFrames > 0) {
+    const pct = Math.min(100,(frame/totalFrames)*100);
+    document.getElementById('progFill').style.width = pct.toFixed(1)+'%';
+    document.getElementById('progPct').textContent  = pct.toFixed(0)+'%';
+  }
+}
+
+async function onDone(data) {
+  setMonState('ok','COMPLIANT'); hideAlert();
+  showAlert('✅ Inferencia completada', 'ok');
+  log('Completado.','el-ok');
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progPct').textContent='100%';
+  resetBtns();
+
+  try {
+    const report = await fetch(`${API}/results/${currentJobId}`).then(r=>r.json());
+    showReport(report);
+    const incidents = report?.analysis?.incidents||[];
+    document.getElementById('kpiSec').textContent = incidents.length;
+    if (incidents.length > 0) {
+      const tbody = document.getElementById('incidentsTbody');
+      tbody.innerHTML = incidents.map((inc,i)=>`<tr><td>${i+1}</td><td>${inc.start_timestamp}</td><td>${inc.duration_seconds??'—'}</td><td>${inc.track_id??'—'}</td></tr>`).join('');
+    }
+    // Inactivity breakdown
+    if (activeModule === 'inactivity' && report?.analysis?.state_breakdown_pct) {
+      const b = report.analysis.state_breakdown_pct;
+      document.getElementById('kpiActivo').textContent   = (b.estado_activo??0)+'%';
+      document.getElementById('kpiPrep').textContent     = (b.estado_preparacion??0)+'%';
+      document.getElementById('kpiDescarga').textContent = (b.estado_descarga??0)+'%';
+      document.getElementById('kpiInactivo').textContent = (b.estado_inactivo??0)+'%';
+    }
+  } catch(e) { log(`Sin reporte: ${e.message}`,'el-warn'); }
+}
+
+function showReport(report) {
+  const sec = document.getElementById('reportSection');
+  sec.style.display = 'block';
+  sec.scrollIntoView({behavior:'smooth'});
+  const a = report?.analysis||{};
+  let kpisHtml = '';
+
+  if (activeModule === 'inactivity') {
+    kpisHtml = `
+      <div class="kpi"><div class="kpi-label">Tasa de Actividad</div><div class="kpi-value green">${a.activity_rate??'—'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Tasa de Inactividad</div><div class="kpi-value red">${a.inactivity_rate??'—'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Incidentes</div><div class="kpi-value red">${a.incident_count??0}</div></div>
+      <div class="kpi"><div class="kpi-label">Duración media</div><div class="kpi-value yellow">${a.avg_incident_duration_s??0}s</div></div>
+      <div class="kpi"><div class="kpi-label">Incidente más largo</div><div class="kpi-value yellow">${a.longest_incident_duration_s??0}s</div></div>
+      <div class="kpi"><div class="kpi-label">Frames analizados</div><div class="kpi-value blue">${a.total_frames_analyzed??'—'}</div></div>`;
+  } else if (activeModule === 'kitting') {
+    kpisHtml = `
+      <div class="kpi"><div class="kpi-label">Kits completados</div><div class="kpi-value green" style="font-size:36px">${a.total_kits_completed??0}</div></div>
+      <div class="kpi"><div class="kpi-label">Kits / hora</div><div class="kpi-value blue">${a.kits_per_hour??'—'}</div></div>
+      <div class="kpi"><div class="kpi-label">Frames analizados</div><div class="kpi-value blue">${a.total_frames_analyzed??'—'}</div></div>`;
+  } else if (activeModule === 'metrology') {
+    kpisHtml = `
+      <div class="kpi"><div class="kpi-label">Piezas OK</div><div class="kpi-value green">${a.ok_rate??'—'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Piezas NOK</div><div class="kpi-value red">${a.nok_rate??'—'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Incidentes NOK</div><div class="kpi-value red">${a.incident_count??0}</div></div>
+      <div class="kpi"><div class="kpi-label">Duración media NOK</div><div class="kpi-value yellow">${a.avg_incident_duration_s??0}s</div></div>
+      <div class="kpi"><div class="kpi-label">Peor NOK</div><div class="kpi-value yellow">${a.max_incident_duration_s??0}s</div></div>
+      <div class="kpi"><div class="kpi-label">Frames analizados</div><div class="kpi-value blue">${a.total_frames_analyzed??'—'}</div></div>`;
+  } else if (activeModule === 'mixed') {
+    kpisHtml = `
+      <div class="kpi"><div class="kpi-label">Cumplimiento EPP</div><div class="kpi-value green">${(a.epp_compliance_rate??'—')}%</div></div>
+      <div class="kpi"><div class="kpi-label">Tasa de Actividad</div><div class="kpi-value blue">${(a.activity_rate??'—')}%</div></div>
+      <div class="kpi"><div class="kpi-label">Incidentes Críticos</div><div class="kpi-value red">${a.critical_incident_count??0}</div></div>
+      <div class="kpi"><div class="kpi-label">Incidentes Advertencia</div><div class="kpi-value yellow">${a.warning_incident_count??0}</div></div>
+      <div class="kpi"><div class="kpi-label">Frames analizados</div><div class="kpi-value blue">${a.total_frames_analyzed??'—'}</div></div>`;
+  } else {
+    kpisHtml = `
+      <div class="kpi"><div class="kpi-label">Cumplimiento EPP</div><div class="kpi-value green">${a.compliance_percentage??'—'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Incidentes</div><div class="kpi-value red">${a.incident_count??0}</div></div>
+      <div class="kpi"><div class="kpi-label">Frames analizados</div><div class="kpi-value blue">${a.total_frames_analyzed??'—'}</div></div>
+      <div class="kpi"><div class="kpi-label">Duración media incidente</div><div class="kpi-value yellow">${a.avg_incident_duration_seconds??0}s</div></div>`;
+  }
+  document.getElementById('reportKpis').innerHTML = kpisHtml;
+  document.getElementById('btnDlVideo').style.display = 'inline-flex';
+}
+function downloadVideo() {
+  if (currentJobId) window.open(`${API}/results/${currentJobId}/video`, '_blank');
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────
+function setMonState(s, rawState) {
+  const el = document.getElementById('monitorState');
+  const stateLabels = {
+    estado_activo:        '● Activo',
+    estado_preparacion:   '● Preparación',
+    estado_descarga:      '● Descarga',
+    estado_inactivo:      '● Inactivo',
+    COMPLIANT:            '● Cumple EPP',
+    INCUMPLIMIENTO:       '● Sin guantes',
+    no_detection:         '⬤ Sin detección',
+    NO_DETECTION:         '⬤ Sin detección',
+    operario_activo:      '● Operario activo',
+    operario_transicion:  '● En transición',
+    no_operator:          '⬤ Sin operario',
+    stall:                '⚠ Producción pausada',
+  };
+  const clsMap = { idle:'s-idle', run:'s-run', ok:'s-ok', warn:'s-warn', err:'s-err', none:'s-none' };
+  const cls   = clsMap[s] || 's-idle';
+  const label = stateLabels[rawState] || stateLabels[s] || '⬤ ' + (rawState || s);
+  el.className = `sbadge ${cls}`; el.textContent = label;
+}
+function showAlert(msg,type) { const el=document.getElementById('alertBanner'); el.textContent=msg; el.className=`alert show ${type}`; }
+function hideAlert() { document.getElementById('alertBanner').classList.remove('show'); }
+function log(msg,cls='el-mute') {
+  const el=document.getElementById('eventsLog');
+  const t=new Date().toLocaleTimeString('es',{hour12:false});
+  const d=document.createElement('div'); d.className=cls; d.textContent=`[${t}] ${msg}`;
+  el.appendChild(d); el.scrollTop=el.scrollHeight;
+}
+function resetMonitor() {
+  document.getElementById('eventsLog').innerHTML='<span class="el-mute">Esperando inicio…</span>';
+  document.getElementById('incidentsTbody').innerHTML='<tr><td colspan="4" class="empty">Sin incidentes</td></tr>';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progPct').textContent='0%';
+  ['kpiMain','kpiSec','kpiFrame','kpiFps'].forEach(id=>document.getElementById(id).textContent='—');
+  ['kpiActivo','kpiPrep','kpiDescarga','kpiInactivo'].forEach(id=>document.getElementById(id).textContent='—');
+  ['kpiHandState','kpiOperatorState','kpiRiskStreak'].forEach(id=>document.getElementById(id).textContent='—');
+  ['kpiDetectedClass','kpiConfidence','kpiNokStreak'].forEach(id=>document.getElementById(id).textContent='—');
+  ['kpiTotalKits','kpiKitsWip','kpiKitsPerMin'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
+  const kpiTK = document.getElementById('kpiTotalKits'); if(kpiTK) kpiTK.textContent='0';
+['kpiPendingCount','kpiPiecesPerMin','kpiBacklogStatus'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
+  const kpiTP = document.getElementById('kpiTotalProcessed'); if(kpiTP) kpiTP.textContent='0';
+  updateRiskBadge('OK');
+  updateVerdictBadge('NO_PIECE');
+  document.getElementById('reportSection').style.display='none';
+  hideAlert(); totalFrames=0; lastFpsTime=Date.now(); lastFrame=0;
+}
+function resetBtns() { document.getElementById('btnStart').disabled=false; document.getElementById('btnStop').disabled=true; }
+function resetUI() {
+  currentJobId = null;
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  resetMonitor(); resetBtns(); setMonState('idle');
+  document.getElementById('jobIdLabel').textContent = '';
+}
+
+// ── Photo inspection ──────────────────────────────────────────────────
+let photoHistory = [];
+
+async function inspectPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const model = document.getElementById('selModelPhoto').value;
+  if (!model) { alert('Selecciona un modelo de inspección.'); input.value=''; return; }
+
+  const conf    = parseFloat(document.getElementById('inpConfThreshold').value || 35) / 100;
+  const nokConf = parseFloat(document.getElementById('inpNokThreshold').value  || 65) / 100;
+  const status = document.getElementById('inspectStatus');
+  const wrap   = document.getElementById('photoPreviewWrap');
+
+  // Show preview immediately
+  const localUrl = URL.createObjectURL(file);
+  wrap.innerHTML = `<img src="${localUrl}" style="width:100%;border-radius:6px;display:block" />`;
+  status.style.color = 'var(--muted)';
+  status.textContent = '⏳ Analizando…';
+  document.getElementById('verdictPanel').style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('model_path', model);
+  formData.append('confidence_threshold', conf.toFixed(2));
+  formData.append('nok_min_confidence', nokConf.toFixed(2));
+
+  try {
+    const res = await fetch(`${API}/inspection/photo`, { method:'POST', body: formData });
+    if (!res.ok) { const e=await res.json(); throw new Error(e.detail||'Error'); }
+    const d = await res.json();
+
+    // Annotated image
+    wrap.innerHTML = `<img src="${d.annotated_image}" style="width:100%;border-radius:6px;display:block" />`;
+
+    // Verdict colors
+    const v = d.verdict;
+    const isOK  = v === 'OK';
+    const isNOP = v === 'NO_PIECE';
+    const isUNC = v === 'UNCERTAIN';
+    const vColor = isOK ? 'var(--accent)' : isNOP ? '#58a6ff' : isUNC ? 'var(--warn)' : 'var(--danger)';
+    const vIcon  = isOK ? '✔' : isNOP ? '◌' : isUNC ? '?' : '✘';
+    const vLabel = isOK ? 'CONFORME' : isNOP ? 'SIN PIEZA' : isUNC ? 'INCIERTO' : 'NO CONFORME';
+
+    document.getElementById('bigVerdict').textContent = `${vIcon} ${vLabel}`;
+    document.getElementById('bigVerdict').style.color = vColor;
+    document.getElementById('verdictDetail').textContent =
+      d.detected_class ? `${d.detected_class} · ${(d.confidence*100).toFixed(1)}% confianza` : 'Sin detección';
+    document.getElementById('photoClass').textContent = d.detected_class || '—';
+    document.getElementById('photoClass').style.color = isOK ? 'var(--accent)' : isNOP ? '#58a6ff' : 'var(--danger)';
+    document.getElementById('photoConf').textContent  = d.confidence ? (d.confidence*100).toFixed(1)+'%' : '—';
+    document.getElementById('verdictPanel').style.display = 'block';
+
+    status.style.color = vColor;
+    status.textContent = `${vIcon} ${vLabel}`;
+
+    // History
+    photoHistory.unshift({ file: file.name, verdict: d.verdict, cls: d.detected_class, conf: d.confidence, model_type: d.model_type });
+    renderPhotoHistory();
+
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = `Error: ${e.message}`;
+  }
+  input.value = '';
+}
+
+async function reloadInspectionModel() {
+  const st = document.getElementById('inspectStatus');
+  st.style.color = 'var(--muted)'; st.textContent = '↺ Recargando…';
+  try {
+    await fetch(`${API}/inspection/reload`, { method:'POST' });
+    st.style.color = 'var(--accent)'; st.textContent = '✓ Modelo recargado';
+  } catch(e) { st.style.color = 'var(--danger)'; st.textContent = 'Error al recargar'; }
+  setTimeout(() => { st.textContent=''; st.style.color=''; }, 3000);
+}
+
+function renderPhotoHistory() {
+  const tbody = document.getElementById('photoHistoryTbody');
+  if (!photoHistory.length) { tbody.innerHTML='<tr><td colspan="5" class="empty">Sin inspecciones</td></tr>'; return; }
+  const colors = { OK:'var(--accent)', NOK:'var(--danger)', NO_PIECE:'#58a6ff', UNCERTAIN:'var(--warn)' };
+  const icons  = { OK:'✔', NOK:'✘', NO_PIECE:'◌', UNCERTAIN:'?' };
+  tbody.innerHTML = photoHistory.slice(0,50).map((h,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${h.file}">${h.file}</td>
+      <td><span style="font-weight:700;color:${colors[h.verdict]||'var(--muted)'}">${icons[h.verdict]||''} ${h.verdict}</span></td>
+      <td>${h.cls||'—'}</td>
+      <td>${h.conf ? (h.conf*100).toFixed(1)+'%' : '—'}</td>
+    </tr>`).join('');
+}
+
+// Drag & drop for photo zone
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('photoZone');
+  if (!zone) return;
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag');
+    const f = e.dataTransfer.files[0];
+    if (f) { document.getElementById('photoInput').files = e.dataTransfer.files; inspectPhoto(document.getElementById('photoInput')); }
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────
+checkHealth(); loadModules(); loadSelects();
+setInterval(checkHealth, 30000);
+</script>
+</body>
+</html>
