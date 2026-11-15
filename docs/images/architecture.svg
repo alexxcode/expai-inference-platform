@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" font-family="-apple-system, Segoe UI, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8b949e"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2ea44f"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f6feb"/>
+    </marker>
+    <style>
+      .title    { fill:#e6edf3; font-size:22px; font-weight:700; }
+      .subtitle { fill:#8b949e; font-size:12px; }
+      .box      { fill:#161b22; stroke:#30363d; stroke-width:1.5; rx:10; ry:10; }
+      .boxAccent{ fill:#1c2a3a; stroke:#1f6feb; stroke-width:1.5; rx:10; ry:10; }
+      .boxCore  { fill:#1a3a27; stroke:#2ea44f; stroke-width:1.5; rx:10; ry:10; }
+      .boxModule{ fill:#21262d; stroke:#30363d; stroke-width:1.2; rx:8; ry:8; }
+      .label    { fill:#e6edf3; font-size:13px; font-weight:700; }
+      .sublabel { fill:#8b949e; font-size:11px; }
+      .tag      { fill:#2ea44f; font-size:10px; font-weight:800; letter-spacing:0.5px; }
+      .tagOff   { fill:#8b949e; font-size:10px; font-weight:800; letter-spacing:0.5px; }
+      .edge     { stroke:#8b949e; stroke-width:1.5; fill:none; }
+      .edgeData { stroke:#2ea44f; stroke-width:1.5; fill:none; stroke-dasharray:0; }
+      .edgeApi  { stroke:#1f6feb; stroke-width:1.5; fill:none; }
+      .section  { fill:#8b949e; font-size:11px; font-weight:700; letter-spacing:1px; }
+    </style>
+  </defs>
+
+  <rect width="1100" height="720" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="40" y="44" class="title">EXPAI Inference Platform — Arquitectura</text>
+  <text x="40" y="64" class="subtitle">Motor YOLO compartido + módulos por caso de uso · API REST · UI Web</text>
+
+  <!-- ============= INPUTS ============= -->
+  <text x="40" y="100" class="section">INPUTS</text>
+  <rect x="40"  y="112" width="170" height="60" class="box"/>
+  <text x="56"  y="135" class="label">Video / Cámara</text>
+  <text x="56"  y="154" class="sublabel">MP4 · RTSP · webcam</text>
+
+  <rect x="40"  y="186" width="170" height="60" class="box"/>
+  <text x="56"  y="209" class="label">Modelos YOLO (.pt)</text>
+  <text x="56"  y="228" class="sublabel">yolo11n · entrenados por caso</text>
+
+  <rect x="40"  y="260" width="170" height="60" class="box"/>
+  <text x="56"  y="283" class="label">Imagen (JPG/PNG)</text>
+  <text x="56"  y="302" class="sublabel">metrología — inferencia estática</text>
+
+  <!-- ============= CORE ============= -->
+  <text x="270" y="100" class="section">CORE — MOTOR COMPARTIDO</text>
+  <rect x="270" y="112" width="310" height="300" class="boxCore"/>
+  <text x="286" y="140" class="label" fill="#2ea44f">core/</text>
+
+  <rect x="286" y="156" width="278" height="40" class="boxModule"/>
+  <text x="300" y="173" class="label">video_processor.py</text>
+  <text x="300" y="188" class="sublabel">Decodifica frames (OpenCV)</text>
+
+  <rect x="286" y="204" width="278" height="40" class="boxModule"/>
+  <text x="300" y="221" class="label">inference_engine.py</text>
+  <text x="300" y="236" class="sublabel">Ultralytics YOLO · GPU/CPU</text>
+
+  <rect x="286" y="252" width="278" height="40" class="boxModule"/>
+  <text x="300" y="269" class="label">tracker · bytetrack</text>
+  <text x="300" y="284" class="sublabel">Identidad del operario entre frames</text>
+
+  <rect x="286" y="300" width="278" height="40" class="boxModule"/>
+  <text x="300" y="317" class="label">visualizer.py</text>
+  <text x="300" y="332" class="sublabel">BBoxes · overlays · estado</text>
+
+  <rect x="286" y="348" width="278" height="40" class="boxModule"/>
+  <text x="300" y="365" class="label">metrics.py · config.py</text>
+  <text x="300" y="380" class="sublabel">FPS · latencia · confianza · YAML</text>
+
+  <!-- ============= MODULES ============= -->
+  <text x="630" y="100" class="section">MÓDULOS POR CASO DE USO</text>
+  <rect x="630" y="112" width="430" height="300" class="box"/>
+
+  <!-- 3x2 grid of module cards -->
+  <g>
+    <rect x="645" y="128" width="130" height="60" class="boxModule"/>
+    <text x="657" y="148" class="label">EPP Guantes</text>
+    <text x="657" y="163" class="sublabel">con_guante / sin_guante</text>
+    <text x="657" y="178" class="tag">ACTIVO</text>
+
+    <rect x="783" y="128" width="130" height="60" class="boxModule"/>
+    <text x="795" y="148" class="label">Inactividad</text>
+    <text x="795" y="163" class="sublabel">activo / inactivo</text>
+    <text x="795" y="178" class="tag">ACTIVO</text>
+
+    <rect x="921" y="128" width="130" height="60" class="boxModule"/>
+    <text x="933" y="148" class="label">Mixto</text>
+    <text x="933" y="163" class="sublabel">EPP + operario</text>
+    <text x="933" y="178" class="tag">ACTIVO</text>
+
+    <rect x="645" y="200" width="130" height="60" class="boxModule"/>
+    <text x="657" y="220" class="label">Metrología</text>
+    <text x="657" y="235" class="sublabel">bracket_ok / not_ok</text>
+    <text x="657" y="250" class="tag">ACTIVO</text>
+
+    <rect x="783" y="200" width="130" height="60" class="boxModule"/>
+    <text x="795" y="220" class="label">Kitting</text>
+    <text x="795" y="235" class="sublabel">kit_listo · bolsa_kit</text>
+    <text x="795" y="250" class="tag">ACTIVO</text>
+
+    <rect x="921" y="200" width="130" height="60" class="boxModule"/>
+    <text x="933" y="220" class="label">Procesado</text>
+    <text x="933" y="235" class="sublabel">pieza_ok / sin_proceso</text>
+    <text x="933" y="250" class="tag">ACTIVO</text>
+  </g>
+
+  <!-- Interfaz BaseModule -->
+  <rect x="645" y="282" width="400" height="116" class="boxAccent"/>
+  <text x="660" y="304" class="label" fill="#58a6ff">BaseModule (modules/base.py)</text>
+  <text x="660" y="324" class="sublabel">process_frame(frame, detections) → annotations · events · metrics</text>
+  <text x="660" y="342" class="sublabel">get_state() · generate_report() · reset() · load_config()</text>
+  <text x="660" y="372" class="sublabel">Cada módulo implementa esta interfaz y se enchufa al core sin tocarlo.</text>
+  <text x="660" y="388" class="sublabel">Analyzer + Alerts específicos por caso de uso.</text>
+
+  <!-- ============= API ============= -->
+  <text x="40" y="450" class="section">API · UI</text>
+  <rect x="40" y="462" width="310" height="120" class="boxAccent"/>
+  <text x="56" y="486" class="label" fill="#58a6ff">api/ — FastAPI (puerto 8000)</text>
+  <text x="56" y="508" class="sublabel">POST /inference/start · /stop</text>
+  <text x="56" y="524" class="sublabel">GET  /inference/{job_id}/status · /stream (SSE)</text>
+  <text x="56" y="540" class="sublabel">GET  /results/{job_id} · /video · /incidents</text>
+  <text x="56" y="562" class="sublabel">GET  /modules · /health</text>
+
+  <rect x="370" y="462" width="210" height="120" class="box"/>
+  <text x="386" y="486" class="label">ui/ — Web Dashboard</text>
+  <text x="386" y="508" class="sublabel">index.html · dark mode</text>
+  <text x="386" y="524" class="sublabel">Selector de módulo</text>
+  <text x="386" y="540" class="sublabel">Monitor tiempo real</text>
+  <text x="386" y="562" class="sublabel">Timeline de incidentes</text>
+
+  <!-- ============= OUTPUTS ============= -->
+  <text x="630" y="450" class="section">OUTPUTS</text>
+  <rect x="630" y="462" width="430" height="120" class="box"/>
+  <rect x="645" y="478" width="195" height="44" class="boxModule"/>
+  <text x="657" y="497" class="label">Video anotado (MP4)</text>
+  <text x="657" y="513" class="sublabel">BBoxes + estado por frame</text>
+
+  <rect x="850" y="478" width="195" height="44" class="boxModule"/>
+  <text x="862" y="497" class="label">Reporte JSON</text>
+  <text x="862" y="513" class="sublabel">Timeline · métricas · incidentes</text>
+
+  <rect x="645" y="530" width="195" height="40" class="boxModule"/>
+  <text x="657" y="549" class="label">Clips de incidentes</text>
+  <text x="657" y="563" class="sublabel">+padding configurable</text>
+
+  <rect x="850" y="530" width="195" height="40" class="boxModule"/>
+  <text x="862" y="549" class="label">Alertas / Webhook / Log</text>
+  <text x="862" y="563" class="sublabel">INFO · WARNING · CRITICAL</text>
+
+  <!-- ============= INFRA ============= -->
+  <text x="40" y="620" class="section">INFRAESTRUCTURA</text>
+  <rect x="40" y="632" width="1020" height="64" class="box"/>
+  <text x="60" y="658" class="label">Google Cloud · VM n1-standard-4 · GPU NVIDIA T4 (16 GB) · europe-west1-b</text>
+  <text x="60" y="678" class="sublabel">Docker + NVIDIA Container Toolkit · CUDA 12.2 · Ubuntu 22.04 · disco datos 200 GB SSD</text>
+
+  <!-- ============= ARROWS ============= -->
+  <!-- inputs -> core -->
+  <path d="M210 142 L270 200" class="edge" marker-end="url(#arrow)"/>
+  <path d="M210 216 L270 240" class="edge" marker-end="url(#arrow)"/>
+  <path d="M210 290 L270 280" class="edge" marker-end="url(#arrow)"/>
+  <!-- core -> modules (detections) -->
+  <path d="M580 230 L630 230" class="edgeData" marker-end="url(#arrowGreen)"/>
+  <text x="586" y="222" fill="#2ea44f" font-size="10" font-weight="700">detections</text>
+  <!-- modules -> core (annotations) -->
+  <path d="M630 350 L580 350" class="edgeData" marker-end="url(#arrowGreen)"/>
+  <text x="586" y="368" fill="#2ea44f" font-size="10" font-weight="700">events + annotations</text>
+  <!-- core -> outputs -->
+  <path d="M450 412 L450 440 L800 440 L800 462" class="edge" marker-end="url(#arrow)"/>
+  <!-- API <-> core -->
+  <path d="M195 462 L195 412" class="edgeApi" marker-end="url(#arrowBlue)"/>
+  <text x="204" y="440" fill="#1f6feb" font-size="10" font-weight="700">control / jobs</text>
+  <!-- UI -> API -->
+  <path d="M370 522 L350 522" class="edgeApi" marker-end="url(#arrowBlue)"/>
+</svg>
