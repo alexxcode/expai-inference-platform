@@ -3,7 +3,6 @@
 # EXPAI Inference Platform
 
 **Plataforma modular de inferencia de visión artificial en tiempo real para entornos industriales.**
-Proyecto EXPAI SmartIndustry · EUREKA 21028 · Accuro Technology S.L.
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
