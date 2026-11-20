@@ -4,6 +4,18 @@
 
 **Plataforma modular de inferencia de visión artificial en tiempo real para entornos industriales.**
 
+EXPAI Inference Platform es un sistema modular de visión artificial en tiempo
+real para entornos industriales. Un único core compartido —decodificación de
+vídeo, detección YOLO11, tracking ByteTrack y renderizado— se extiende mediante
+módulos enchufables: cada uno implementa una sola interfaz y aporta su análisis,
+sus KPIs y sus alertas. Una capa FastAPI orquesta los jobs y transmite las
+detecciones por SSE a un dashboard en vivo.
+
+La clave está en esa separación: incorporar un caso de uso nuevo significa
+escribir un módulo, no construir otro pipeline. Hoy corren seis sobre el mismo
+motor.
+
+
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Ultralytics YOLO](https://img.shields.io/badge/YOLO-v11-00FFFF?logo=yolo&logoColor=black)](https://docs.ultralytics.com/)
